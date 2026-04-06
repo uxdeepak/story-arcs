@@ -13,6 +13,11 @@ const YEAR_START = new Date('2024-01-01').getTime()
 const YEAR_END = new Date('2024-12-31').getTime()
 const YEAR_MS = YEAR_END - YEAR_START
 
+// Each story marker is a fixed-width pill centered at the story's midpoint.
+// This prevents long-duration stories from visually dominating the bar.
+const MARKER_WIDTH_PCT = 4 // % of bar width per marker
+const MARKER_HIT_EXTRA = 1.5 // extra % padding for easier hover targeting
+
 function formatShortDateRange(start, end) {
   const s = new Date(start)
   const e = new Date(end)
@@ -37,24 +42,26 @@ export default function Minimap({
   const [isDragging, setIsDragging] = useState(false)
   const [hoverMonth, setHoverMonth] = useState(null)
 
-  // Pre-compute story positions for hit-testing (sorted narrowest-first so
-  // short stories are found before year-spanning arcs that overlap them)
+  // Pre-compute story positions — each story is a fixed-width marker at its midpoint
   const storyPositions = useMemo(() => {
-    return stories
-      .map((story) => {
-        const startMs = new Date(story.dateRange.start).getTime()
-        const endMs = new Date(story.dateRange.end).getTime()
-        const leftPct = (startMs - YEAR_START) / YEAR_MS
-        const widthPct = Math.max((endMs - startMs) / YEAR_MS, 0.008)
-        const coverPhoto = story.photos[story.coverPhotoIndex] || story.photos[0]
-        return { story, leftPct, widthPct, color: MOOD_COLORS[story.mood] || MOOD_COLORS.warm, coverUrl: coverPhoto?.url }
-      })
-      .sort((a, b) => a.widthPct - b.widthPct)
+    return stories.map((story) => {
+      const startMs = new Date(story.dateRange.start).getTime()
+      const endMs = new Date(story.dateRange.end).getTime()
+      const midMs = startMs + (endMs - startMs) / 2
+      const midPct = ((midMs - YEAR_START) / YEAR_MS) * 100
+      const coverPhoto = story.photos[story.coverPhotoIndex] || story.photos[0]
+      return {
+        story,
+        midPct,
+        color: MOOD_COLORS[story.mood] || MOOD_COLORS.warm,
+        coverUrl: coverPhoto?.url,
+        photoCount: story.photos.length,
+      }
+    })
   }, [stories])
 
   const handleClick = useCallback(
     (e) => {
-      // If clicking on a story segment, navigate to that story
       if (hoveredStory) {
         navigate(`/story/${hoveredStory.id}`)
         return
@@ -92,14 +99,15 @@ export default function Minimap({
       const xPct = fraction * 100
       setHoverX(e.clientX - rect.left)
 
-      // Hit-test story segments
+      // Hit-test: find the nearest story marker within hit range
       let found = null
+      let bestDist = Infinity
+      const hitHalf = MARKER_WIDTH_PCT / 2 + MARKER_HIT_EXTRA
       for (const sp of storyPositions) {
-        const segLeft = sp.leftPct * 100
-        const segRight = segLeft + sp.widthPct * 100
-        if (xPct >= segLeft - 0.5 && xPct <= segRight + 0.5) {
+        const dist = Math.abs(xPct - sp.midPct)
+        if (dist <= hitHalf && dist < bestDist) {
+          bestDist = dist
           found = sp.story
-          break
         }
       }
 
@@ -108,7 +116,6 @@ export default function Minimap({
         setHoverMonth(null)
       } else {
         setHoveredStory(null)
-        // Show month label
         const monthIdx = Math.min(Math.floor(fraction * 12), 11)
         setHoverMonth(monthIdx >= 0 ? monthIdx : null)
       }
@@ -124,7 +131,6 @@ export default function Minimap({
   const viewLeft = scrollFraction * 100
   const viewWidth = Math.min(viewportFraction * 100, 100)
 
-  // Find the hovered story's cover URL for tooltip
   const hoveredCover = hoveredStory
     ? storyPositions.find((sp) => sp.story.id === hoveredStory.id)?.coverUrl
     : null
@@ -145,7 +151,7 @@ export default function Minimap({
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        {/* Rounded clip container for internal elements */}
+        {/* Rounded clip container */}
         <div className="absolute inset-0 rounded-full overflow-hidden">
           {/* Month tick marks */}
           {MONTHS.map((_, i) => (
@@ -161,23 +167,26 @@ export default function Minimap({
             />
           ))}
 
-          {/* Story segments */}
-          {storyPositions.map(({ story, leftPct, widthPct, color }) => {
+          {/* Story markers — fixed-width pills at each story's midpoint */}
+          {storyPositions.map(({ story, midPct, color, photoCount }) => {
             const isHovered = hoveredStory?.id === story.id
+            // Scale marker width slightly by photo count (more photos = slightly wider)
+            const w = MARKER_WIDTH_PCT + Math.min(photoCount / 10, 2)
             return (
               <div
                 key={story.id}
                 className="absolute rounded-full"
                 style={{
-                  left: `${leftPct * 100}%`,
-                  width: `${widthPct * 100}%`,
-                  minWidth: '4px',
+                  left: `${midPct - w / 2}%`,
+                  width: `${w}%`,
+                  minWidth: '6px',
                   top: isHovered ? 2 : 4,
                   bottom: isHovered ? 2 : 4,
                   backgroundColor: color,
-                  opacity: isHovered ? 1 : 0.7,
-                  transition: 'opacity 150ms ease, top 150ms ease, bottom 150ms ease',
+                  opacity: isHovered ? 1 : 0.75,
+                  transition: 'opacity 150ms ease, top 150ms ease, bottom 150ms ease, filter 150ms ease',
                   zIndex: isHovered ? 2 : 1,
+                  filter: isHovered ? 'brightness(1.2)' : 'none',
                 }}
               />
             )
@@ -204,7 +213,7 @@ export default function Minimap({
           />
         </div>
 
-        {/* Draggable handle (over the viewport indicator) */}
+        {/* Draggable handle */}
         <div
           className="absolute top-0 h-full cursor-grab active:cursor-grabbing"
           style={{
@@ -216,7 +225,7 @@ export default function Minimap({
           onMouseDown={handleMouseDown}
         />
 
-        {/* Hover tooltip — below the minimap */}
+        {/* Hover tooltip */}
         {(hoveredStory || hoverMonth !== null) && !isDragging && (
           <div
             className="absolute top-full mt-2 pointer-events-none"
@@ -226,7 +235,7 @@ export default function Minimap({
               zIndex: 10,
             }}
           >
-            {/* Tooltip arrow */}
+            {/* Arrow */}
             <div
               className="mx-auto"
               style={{
@@ -248,7 +257,6 @@ export default function Minimap({
             >
               {hoveredStory ? (
                 <div>
-                  {/* Cover photo preview */}
                   {hoveredCover && (
                     <div className="relative" style={{ height: 72 }}>
                       <img
