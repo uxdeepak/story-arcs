@@ -98,7 +98,7 @@ export default function Sidebar({ onSearchOpen }) {
                 size={18}
                 strokeWidth={1.8}
                 style={{
-                  color: active ? 'var(--color-accent)' : 'var(--color-text-muted)',
+                  color: active ? 'var(--color-accent)' : 'var(--color-text-secondary)',
                   flexShrink: 0,
                   transition: 'color 200ms ease',
                 }}
@@ -143,7 +143,7 @@ export default function Sidebar({ onSearchOpen }) {
                 <ThemeIcon
                   size={18}
                   strokeWidth={1.8}
-                  style={{ color: 'var(--color-text-muted)' }}
+                  style={{ color: 'var(--color-text-secondary)' }}
                 />
               </motion.div>
             </AnimatePresence>
@@ -172,7 +172,7 @@ export default function Sidebar({ onSearchOpen }) {
           <Search
             size={18}
             strokeWidth={1.8}
-            style={{ color: 'var(--color-text-muted)', flexShrink: 0 }}
+            style={{ color: 'var(--color-text-secondary)', flexShrink: 0 }}
           />
           <span
             className="text-[13px] whitespace-nowrap"
@@ -197,7 +197,7 @@ export default function Sidebar({ onSearchOpen }) {
           <Settings
             size={18}
             strokeWidth={1.8}
-            style={{ color: 'var(--color-text-muted)', flexShrink: 0 }}
+            style={{ color: 'var(--color-text-secondary)', flexShrink: 0 }}
           />
           <span
             className="text-[13px] whitespace-nowrap"

@@ -164,7 +164,7 @@ export default function StoryIsland({ story, style, index, onHover }) {
                   />
                   <span
                     className="text-[10px]"
-                    style={{ color: 'var(--color-text-muted)' }}
+                    style={{ color: 'var(--color-text-secondary)' }}
                   >
                     {person}
                   </span>

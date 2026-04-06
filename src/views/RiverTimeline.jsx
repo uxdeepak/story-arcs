@@ -204,10 +204,10 @@ export default function RiverTimeline() {
         </div>
 
         <div className="flex items-center gap-3 lg:gap-4 whitespace-nowrap">
-          <span className="text-[11px] lg:text-xs" style={{ color: 'var(--color-text-muted)' }}>
+          <span className="text-[11px] lg:text-xs" style={{ color: 'var(--color-text-secondary)' }}>
             {storyArcs.length} stories
           </span>
-          <span className="text-[11px] lg:text-xs hidden sm:inline" style={{ color: 'var(--color-text-muted)' }}>
+          <span className="text-[11px] lg:text-xs hidden sm:inline" style={{ color: 'var(--color-text-secondary)' }}>
             {totalPhotos} photos
           </span>
           <span
@@ -303,7 +303,7 @@ export default function RiverTimeline() {
                   style={{
                     left: '8px',
                     top: 'calc(50% + 20px)',
-                    color: 'var(--color-text-muted)',
+                    color: 'var(--color-text-secondary)',
                     letterSpacing: '0.05em',
                     animationDelay: `${1.5 + i * 0.06}s`,
                   }}
@@ -369,7 +369,6 @@ export default function RiverTimeline() {
               top: 'calc(50% - 8px)',
               color: 'var(--color-text-muted)',
               fontFamily: 'var(--font-serif)',
-              opacity: 0.5,
             }}
           >
             2024

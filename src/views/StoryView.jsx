@@ -471,10 +471,10 @@ export default function StoryView() {
           />
           <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
             {formatDateRange(story.dateRange.start, story.dateRange.end)}
-            <span style={{ color: 'var(--color-text-muted)', margin: '0 6px' }}>·</span>
+            <span style={{ color: 'var(--color-text-secondary)', margin: '0 6px' }}>·</span>
             {story.primaryLocation}
-            <span style={{ color: 'var(--color-text-muted)', margin: '0 6px' }}>·</span>
-            <span style={{ color: 'var(--color-text-muted)' }}>
+            <span style={{ color: 'var(--color-text-secondary)', margin: '0 6px' }}>·</span>
+            <span style={{ color: 'var(--color-text-secondary)' }}>
               {editablePhotos.length} photos
             </span>
           </p>
@@ -561,7 +561,7 @@ export default function StoryView() {
                   value={label.name}
                   onChange={(newName) => handleClusterRename(label.name, newName)}
                   className="text-[11px] font-medium tracking-wide"
-                  style={{ color: 'var(--color-text-muted)', opacity: 0.7 }}
+                  style={{ color: 'var(--color-text-muted)' }}
                 />
               </motion.div>
             ))}
@@ -587,7 +587,7 @@ export default function StoryView() {
                 >
                   <span
                     className="text-[10px] italic whitespace-nowrap"
-                    style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}
+                    style={{ color: 'var(--color-text-secondary)' }}
                   >
                     {annotations[hoveredCluster]}
                   </span>

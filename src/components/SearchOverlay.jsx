@@ -125,7 +125,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
               className="flex items-center gap-3 px-5 py-4 shrink-0"
               style={{ borderBottom: '1px solid var(--color-border)' }}
             >
-              <Search size={20} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+              <Search size={20} style={{ color: 'var(--color-text-secondary)', flexShrink: 0 }} />
               <input
                 ref={inputRef}
                 type="text"
@@ -159,7 +159,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
               {!results && (
                 <div className="px-5 py-3">
                   <p
-                    className="text-[10px] uppercase tracking-widest mb-3"
+                    className="text-[10px] uppercase tracking-widest font-medium mb-3"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
                     Recent stories
@@ -173,7 +173,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
               {/* No results */}
               {results && !hasResults && (
                 <div className="px-5 py-10 text-center">
-                  <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                     No memories match "{query}"
                   </p>
                 </div>
@@ -183,7 +183,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
               {results?.stories.length > 0 && (
                 <div className="px-5 py-2">
                   <p
-                    className="text-[10px] uppercase tracking-widest mb-2"
+                    className="text-[10px] uppercase tracking-widest font-medium mb-2"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
                     Stories
@@ -198,7 +198,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
               {results?.people.length > 0 && (
                 <div className="px-5 py-2">
                   <p
-                    className="text-[10px] uppercase tracking-widest mb-2"
+                    className="text-[10px] uppercase tracking-widest font-medium mb-2"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
                     People
@@ -241,7 +241,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
               {results?.places.length > 0 && (
                 <div className="px-5 py-2">
                   <p
-                    className="text-[10px] uppercase tracking-widest mb-2"
+                    className="text-[10px] uppercase tracking-widest font-medium mb-2"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
                     Places
@@ -339,7 +339,7 @@ function StoryRow({ story, index, onClick }) {
         >
           {story.title}
         </p>
-        <p className="text-[11px] truncate" style={{ color: 'var(--color-text-muted)' }}>
+        <p className="text-[11px] truncate" style={{ color: 'var(--color-text-secondary)' }}>
           {formatDateRange(story.dateRange.start, story.dateRange.end)}
           <span style={{ margin: '0 4px' }}>·</span>
           {story.primaryLocation}

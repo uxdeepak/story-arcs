@@ -48,7 +48,7 @@ export default function LoosePhotoMarkers({ loosePhotos, totalWidth, paddingLeft
               className="w-1.5 h-1.5 rotate-45"
               style={{
                 backgroundColor: 'var(--color-text-muted)',
-                opacity: 0.4,
+                opacity: 0.7,
               }}
             />
             {/* Label */}
@@ -56,7 +56,6 @@ export default function LoosePhotoMarkers({ loosePhotos, totalWidth, paddingLeft
               className="text-[9px] mt-1 whitespace-nowrap"
               style={{
                 color: 'var(--color-text-muted)',
-                opacity: 0.5,
               }}
             >
               {group.length} loose photo{group.length > 1 ? 's' : ''}

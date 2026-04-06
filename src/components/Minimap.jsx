@@ -1,6 +1,7 @@
 import { useRef, useCallback, useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const MONTHS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
 
 const MOOD_COLORS = {
   warm: '#C4724E',
@@ -30,29 +31,39 @@ export default function Minimap({
   totalWidth,
 }) {
   const barRef = useRef(null)
+  const navigate = useNavigate()
   const [hoveredStory, setHoveredStory] = useState(null)
   const [hoverX, setHoverX] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [hoverMonth, setHoverMonth] = useState(null)
 
-  // Pre-compute story positions for hit-testing
+  // Pre-compute story positions for hit-testing (sorted narrowest-first so
+  // short stories are found before year-spanning arcs that overlap them)
   const storyPositions = useMemo(() => {
-    return stories.map((story) => {
-      const startMs = new Date(story.dateRange.start).getTime()
-      const endMs = new Date(story.dateRange.end).getTime()
-      const leftPct = (startMs - YEAR_START) / YEAR_MS
-      const widthPct = Math.max((endMs - startMs) / YEAR_MS, 0.008)
-      return { story, leftPct, widthPct, color: MOOD_COLORS[story.mood] || MOOD_COLORS.warm }
-    })
+    return stories
+      .map((story) => {
+        const startMs = new Date(story.dateRange.start).getTime()
+        const endMs = new Date(story.dateRange.end).getTime()
+        const leftPct = (startMs - YEAR_START) / YEAR_MS
+        const widthPct = Math.max((endMs - startMs) / YEAR_MS, 0.008)
+        const coverPhoto = story.photos[story.coverPhotoIndex] || story.photos[0]
+        return { story, leftPct, widthPct, color: MOOD_COLORS[story.mood] || MOOD_COLORS.warm, coverUrl: coverPhoto?.url }
+      })
+      .sort((a, b) => a.widthPct - b.widthPct)
   }, [stories])
 
   const handleClick = useCallback(
     (e) => {
+      // If clicking on a story segment, navigate to that story
+      if (hoveredStory) {
+        navigate(`/story/${hoveredStory.id}`)
+        return
+      }
       const rect = barRef.current.getBoundingClientRect()
       const fraction = (e.clientX - rect.left) / rect.width
       onScrollTo(fraction * totalWidth)
     },
-    [onScrollTo, totalWidth]
+    [onScrollTo, totalWidth, hoveredStory, navigate]
   )
 
   const handleMouseDown = useCallback(
@@ -61,7 +72,6 @@ export default function Minimap({
       const rect = barRef.current.getBoundingClientRect()
       setIsDragging(true)
 
-      // Wrap the original onDragStart to detect when drag ends
       const origOnUp = () => setIsDragging(false)
       window.addEventListener('mouseup', origOnUp, { once: true })
 
@@ -100,7 +110,7 @@ export default function Minimap({
         setHoveredStory(null)
         // Show month label
         const monthIdx = Math.min(Math.floor(fraction * 12), 11)
-        setHoverMonth(monthIdx >= 0 ? MONTHS[monthIdx] : null)
+        setHoverMonth(monthIdx >= 0 ? monthIdx : null)
       }
     },
     [storyPositions, isDragging]
@@ -114,15 +124,22 @@ export default function Minimap({
   const viewLeft = scrollFraction * 100
   const viewWidth = Math.min(viewportFraction * 100, 100)
 
+  // Find the hovered story's cover URL for tooltip
+  const hoveredCover = hoveredStory
+    ? storyPositions.find((sp) => sp.story.id === hoveredStory.id)?.coverUrl
+    : null
+
   return (
-    <div className="flex items-center gap-3 flex-1 min-w-0 max-w-[560px]">
+    <div className="flex flex-col gap-0.5 flex-1 min-w-0 max-w-[560px]">
+      {/* Main bar */}
       <div
         ref={barRef}
-        className="relative flex-1 rounded-full cursor-pointer overflow-visible"
+        className="relative rounded-full overflow-visible"
         style={{
           backgroundColor: 'var(--color-surface)',
           height: isDragging ? 28 : 24,
           transition: 'height 200ms ease',
+          cursor: hoveredStory ? 'pointer' : 'default',
         }}
         onClick={handleClick}
         onMouseMove={handleMouseMove}
@@ -200,7 +217,7 @@ export default function Minimap({
         />
 
         {/* Hover tooltip — below the minimap */}
-        {(hoveredStory || hoverMonth) && !isDragging && (
+        {(hoveredStory || hoverMonth !== null) && !isDragging && (
           <div
             className="absolute top-full mt-2 pointer-events-none"
             style={{
@@ -221,51 +238,94 @@ export default function Minimap({
               }}
             />
             <div
-              className="px-2.5 py-1.5 rounded-lg whitespace-nowrap"
+              className="rounded-lg overflow-hidden"
               style={{
                 backgroundColor: 'var(--color-surface-elevated)',
                 border: '1px solid var(--color-border)',
                 boxShadow: 'var(--shadow-tooltip)',
+                minWidth: hoveredStory ? 180 : undefined,
               }}
             >
               {hoveredStory ? (
-                <>
-                  <p
-                    className="text-[11px] font-semibold leading-tight"
-                    style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-serif)' }}
-                  >
-                    {hoveredStory.title}
-                  </p>
-                  <p className="text-[10px] leading-tight mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
-                    {formatShortDateRange(hoveredStory.dateRange.start, hoveredStory.dateRange.end)}
-                    <span style={{ margin: '0 3px' }}>·</span>
-                    {hoveredStory.photos.length} photos
-                  </p>
-                  {hoveredStory.people.length > 0 && (
-                    <div className="flex items-center gap-1 mt-1">
-                      {hoveredStory.people.map((p) => (
-                        <span
-                          key={p}
-                          className="text-[9px] px-1.5 py-0.5 rounded-full"
-                          style={{
-                            backgroundColor: 'var(--color-accent-subtle)',
-                            color: 'var(--color-accent)',
-                          }}
-                        >
-                          {p}
-                        </span>
-                      ))}
+                <div>
+                  {/* Cover photo preview */}
+                  {hoveredCover && (
+                    <div className="relative" style={{ height: 72 }}>
+                      <img
+                        src={hoveredCover}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        style={{ display: 'block' }}
+                      />
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          background: 'linear-gradient(to top, var(--color-surface-elevated) 0%, transparent 60%)',
+                        }}
+                      />
                     </div>
                   )}
-                </>
+                  <div className="px-2.5 pb-2 pt-1" style={{ marginTop: hoveredCover ? -16 : 0, position: 'relative' }}>
+                    <p
+                      className="text-[11px] font-semibold leading-tight"
+                      style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-serif)' }}
+                    >
+                      {hoveredStory.title}
+                    </p>
+                    <p className="text-[10px] leading-tight mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>
+                      {formatShortDateRange(hoveredStory.dateRange.start, hoveredStory.dateRange.end)}
+                      <span style={{ margin: '0 3px' }}>·</span>
+                      {hoveredStory.photos.length} photos
+                    </p>
+                    {hoveredStory.people.length > 0 && (
+                      <div className="flex items-center gap-1 mt-1">
+                        {hoveredStory.people.map((p) => (
+                          <span
+                            key={p}
+                            className="text-[9px] px-1.5 py-0.5 rounded-full"
+                            style={{
+                              backgroundColor: 'var(--color-accent-subtle)',
+                              color: 'var(--color-accent)',
+                            }}
+                          >
+                            {p}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-[9px] mt-1.5" style={{ color: 'var(--color-text-muted)' }}>
+                      Click to open
+                    </p>
+                  </div>
+                </div>
               ) : (
-                <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
-                  {hoverMonth}
-                </p>
+                <div className="px-2.5 py-1.5">
+                  <p className="text-[10px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                    {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][hoverMonth]}
+                  </p>
+                </div>
               )}
             </div>
           </div>
         )}
+      </div>
+
+      {/* Month labels below the bar */}
+      <div className="relative flex-1 min-w-0" style={{ height: 10 }}>
+        {MONTHS.map((label, i) => (
+          <span
+            key={i}
+            className="absolute text-[8px] select-none"
+            style={{
+              left: `${((i + 0.5) / 12) * 100}%`,
+              transform: 'translateX(-50%)',
+              color: 'var(--color-text-muted)',
+              lineHeight: 1,
+            }}
+          >
+            {label}
+          </span>
+        ))}
       </div>
     </div>
   )

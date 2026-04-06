@@ -217,7 +217,7 @@ export default function Lightbox({
                 </button>
                 <span
                   className="text-xs px-2 min-w-[60px] text-center"
-                  style={{ color: 'var(--color-text-muted)' }}
+                  style={{ color: 'var(--color-text-secondary)' }}
                 >
                   {currentIndex + 1} of {photos.length}
                 </span>
@@ -237,7 +237,7 @@ export default function Lightbox({
                 <button
                   className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"
                   style={{
-                    color: isFavorite ? 'var(--color-favorite)' : 'var(--color-text-muted)',
+                    color: isFavorite ? 'var(--color-favorite)' : 'var(--color-text-secondary)',
                     transition: 'color 0.15s',
                   }}
                   onClick={() => onToggleFavorite?.(photo.id)}
@@ -254,17 +254,17 @@ export default function Lightbox({
                   <button
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer text-xs"
                     style={{
-                      color: 'var(--color-text-muted)',
+                      color: 'var(--color-text-secondary)',
                       backgroundColor: 'transparent',
                       transition: 'background-color 0.15s, color 0.15s',
                     }}
                     onMouseOver={(e) => {
                       e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)'
-                      e.currentTarget.style.color = 'var(--color-text-secondary)'
+                      e.currentTarget.style.color = 'var(--color-text-primary)'
                     }}
                     onMouseOut={(e) => {
                       e.currentTarget.style.backgroundColor = 'transparent'
-                      e.currentTarget.style.color = 'var(--color-text-muted)'
+                      e.currentTarget.style.color = 'var(--color-text-secondary)'
                     }}
                     onClick={() => onRemove(photo)}
                     title="Remove from story"
@@ -297,7 +297,7 @@ export default function Lightbox({
                 className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"
                 style={{
                   backgroundColor: 'var(--color-surface-elevated)',
-                  color: 'var(--color-text-muted)',
+                  color: 'var(--color-text-secondary)',
                   border: '1px solid var(--color-border)',
                 }}
                 onClick={onClose}
@@ -313,7 +313,7 @@ export default function Lightbox({
               <div>
                 <p
                   className="text-[10px] uppercase tracking-widest mb-2"
-                  style={{ color: 'var(--color-text-muted)' }}
+                  style={{ color: 'var(--color-text-secondary)' }}
                 >
                   Date & Time
                 </p>
@@ -328,12 +328,12 @@ export default function Lightbox({
               <div>
                 <p
                   className="text-[10px] uppercase tracking-widest mb-2"
-                  style={{ color: 'var(--color-text-muted)' }}
+                  style={{ color: 'var(--color-text-secondary)' }}
                 >
                   Location
                 </p>
                 <div className="flex items-center gap-2">
-                  <MapPin size={14} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+                  <MapPin size={14} style={{ color: 'var(--color-text-secondary)', flexShrink: 0 }} />
                   <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                     {photo.location}
                   </p>
@@ -390,7 +390,7 @@ export default function Lightbox({
               <div>
                 <p
                   className="text-[10px] uppercase tracking-widest mb-2"
-                  style={{ color: 'var(--color-text-muted)' }}
+                  style={{ color: 'var(--color-text-secondary)' }}
                 >
                   Cluster
                 </p>
@@ -411,7 +411,7 @@ export default function Lightbox({
               <div>
                 <p
                   className="text-[10px] uppercase tracking-widest mb-2"
-                  style={{ color: 'var(--color-text-muted)' }}
+                  style={{ color: 'var(--color-text-secondary)' }}
                 >
                   Story
                 </p>
