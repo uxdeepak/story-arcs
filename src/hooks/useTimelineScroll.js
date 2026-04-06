@@ -39,6 +39,8 @@ export default function useTimelineScroll(scrollRef, totalWidth) {
     if (!el) return
 
     const onWheel = (e) => {
+      // Ctrl+wheel is handled by zoom hook
+      if (e.ctrlKey) return
       // If shift is held or it's a horizontal scroll, let it through naturally
       if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return
 
