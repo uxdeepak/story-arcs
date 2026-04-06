@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext.jsx'
 import { clusterAnnotations } from '../data/demoData.js'
@@ -50,12 +50,26 @@ function groupByCluster(photos) {
 }
 
 // Shared wrapper for all levels — handles positioning, click, hover, keyboard
+// Animates position/size changes via CSS transitions, crossfades content via AnimatePresence
 function IslandWrapper({ story, style, index, onHover, zoomLevel, isHovered, setIsHovered, children }) {
   const navigate = useNavigate()
+
+  // Separate positioning props (animated via CSS) from size props
+  const { left, top, width, height, minHeight, ...restStyle } = style
+
   return (
     <motion.div
       className="absolute cursor-pointer"
-      style={{ ...style, zIndex: isHovered ? 20 : 10 }}
+      style={{
+        left,
+        top,
+        width,
+        height,
+        minHeight,
+        zIndex: isHovered ? 20 : 10,
+        transition: 'left 400ms cubic-bezier(0.22,1,0.36,1), top 400ms cubic-bezier(0.22,1,0.36,1), width 400ms cubic-bezier(0.22,1,0.36,1)',
+        ...restStyle,
+      }}
       initial={{ opacity: 0, y: zoomLevel === 0 ? 16 : 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
@@ -76,7 +90,17 @@ function IslandWrapper({ story, style, index, onHover, zoomLevel, isHovered, set
         }
       }}
     >
-      {children}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={zoomLevel}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {children}
+        </motion.div>
+      </AnimatePresence>
     </motion.div>
   )
 }

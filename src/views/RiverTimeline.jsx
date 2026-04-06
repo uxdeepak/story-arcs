@@ -1,4 +1,5 @@
 import { useRef, useMemo, useEffect, useState, useCallback } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import useInView from '../hooks/useInView.js'
 import { storyArcs, loosePhotos, totalPhotos } from '../data/demoData.js'
 import StoryIsland, { getIslandHeight } from '../components/StoryIsland.jsx'
@@ -167,6 +168,8 @@ export default function RiverTimeline() {
   const PADDING_LEFT = BASE_PADDING_LEFT * zm
 
   const {
+    scrollLeft,
+    viewportWidth,
     scrollFraction,
     viewportFraction,
     scrollTo,
@@ -241,6 +244,36 @@ export default function RiverTimeline() {
   const handleIslandHover = useCallback((id) => {
     setHoveredStoryId(id)
   }, [])
+
+  // Zoom level label toast — shows briefly when zoom changes
+  const [zoomToast, setZoomToast] = useState(null)
+  const prevZoomLevel = useRef(zoomLevel)
+  useEffect(() => {
+    if (prevZoomLevel.current !== zoomLevel) {
+      setZoomToast(levelLabel)
+      const timer = setTimeout(() => setZoomToast(null), 1200)
+      prevZoomLevel.current = zoomLevel
+      return () => clearTimeout(timer)
+    }
+  }, [zoomLevel, levelLabel])
+
+  // Compute visible time context from scroll position
+  const visibleContext = useMemo(() => {
+    if (TOTAL_WIDTH === 0 || viewportWidth === 0) return null
+    const leftFrac = Math.max(0, (scrollLeft - PADDING_LEFT) / (TOTAL_WIDTH - PADDING_LEFT * 2))
+    const rightFrac = Math.min(1, (scrollLeft + viewportWidth - PADDING_LEFT) / (TOTAL_WIDTH - PADDING_LEFT * 2))
+    const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const startMonth = Math.max(0, Math.min(11, Math.floor(leftFrac * 12)))
+    const endMonth = Math.max(0, Math.min(11, Math.floor(rightFrac * 12)))
+    // Find stories visible in the viewport
+    const visibleStories = islandLayout.filter(({ x, width }) =>
+      x + width > scrollLeft && x < scrollLeft + viewportWidth
+    )
+    if (startMonth === endMonth) {
+      return { time: MONTH_NAMES[startMonth] + ' 2024', storyCount: visibleStories.length }
+    }
+    return { time: `${MONTH_NAMES[startMonth]} – ${MONTH_NAMES[endMonth]} 2024`, storyCount: visibleStories.length }
+  }, [scrollLeft, viewportWidth, TOTAL_WIDTH, PADDING_LEFT, islandLayout])
 
   return (
     <div className="h-screen flex flex-col overflow-hidden" style={{ backgroundColor: 'var(--color-bg)' }}>
@@ -473,6 +506,57 @@ export default function RiverTimeline() {
           canZoomOut={canZoomOut}
           levelLabel={levelLabel}
         />
+
+        {/* ── Zoom level toast ────────────────────────────────────── */}
+        <AnimatePresence>
+          {zoomToast && (
+            <motion.div
+              className="absolute left-1/2 flex items-center gap-2 px-4 py-2 rounded-full pointer-events-none"
+              style={{
+                top: 16,
+                transform: 'translateX(-50%)',
+                zIndex: 30,
+                backgroundColor: 'var(--color-surface-elevated)',
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+              }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+            >
+              <span className="text-xs font-medium" style={{ color: 'var(--color-accent)' }}>
+                {zoomToast}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Floating context pill (visible at zoom 1+) ──────────── */}
+        {zoomLevel >= 1 && visibleContext && (
+          <div
+            className="absolute left-4 flex items-center gap-2 px-3 py-1.5 rounded-full"
+            style={{
+              bottom: 12,
+              zIndex: 20,
+              backgroundColor: 'var(--color-surface-elevated)',
+              border: '1px solid var(--color-border)',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+            }}
+          >
+            <span className="text-[11px] font-medium" style={{ color: 'var(--color-text-primary)' }}>
+              {visibleContext.time}
+            </span>
+            {visibleContext.storyCount > 0 && (
+              <>
+                <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>·</span>
+                <span className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>
+                  {visibleContext.storyCount} {visibleContext.storyCount === 1 ? 'story' : 'stories'} in view
+                </span>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Bottom bar ─────────────────────────────────────────────── */}
