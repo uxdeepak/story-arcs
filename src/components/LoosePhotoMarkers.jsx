@@ -2,7 +2,7 @@ const YEAR_START = new Date('2024-01-01').getTime()
 const YEAR_END = new Date('2024-12-31T23:59:59').getTime()
 const YEAR_MS = YEAR_END - YEAR_START
 
-export default function LoosePhotoMarkers({ loosePhotos, totalWidth, paddingLeft }) {
+export default function LoosePhotoMarkers({ loosePhotos, totalWidth, paddingLeft, riverY }) {
   if (loosePhotos.length === 0) return null
 
   // Group loose photos by proximity (within 30 days of each other)
@@ -39,7 +39,7 @@ export default function LoosePhotoMarkers({ loosePhotos, totalWidth, paddingLeft
             className="absolute flex flex-col items-center pointer-events-none"
             style={{
               left: x,
-              top: 'calc(50% + 28px)',
+              top: riverY != null ? riverY + 28 : 'calc(50% + 28px)',
               transform: 'translateX(-50%)',
             }}
           >

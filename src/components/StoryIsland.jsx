@@ -123,7 +123,9 @@ export default function StoryIsland({ story, style, index, onHover, zoomLevel = 
             width: style.width,
             height: style.height,
             backgroundColor: 'var(--color-surface-elevated)',
-            border: '1px solid var(--color-border)',
+            borderTop: '1px solid var(--color-border)',
+            borderRight: '1px solid var(--color-border)',
+            borderBottom: '1px solid var(--color-border)',
             borderLeft: `3px solid ${moodColor}`,
           }}
           animate={{
@@ -408,36 +410,19 @@ export function getIslandHeight(story, zoomLevel) {
   if (zoomLevel === 0) return 36
   if (zoomLevel === 1) return 190
   if (zoomLevel === 2) {
-    // Card (160) + border + cluster strips
+    // Card (160) + cluster strips (each: 20px label + 38px thumb + 8px gap)
     const clusters = [...new Set(story.photos.map((p) => p.cluster))].length
-    const maxPhotosInCluster = Math.max(
-      ...Object.values(
-        story.photos.reduce((acc, p) => {
-          acc[p.cluster] = (acc[p.cluster] || 0) + 1
-          return acc
-        }, {})
-      )
-    )
-    const stripRows = clusters
-    const stripH = stripRows * 58 + 8 // 38px thumb + 20px label+gap per cluster
-    return 160 + stripH
+    return 160 + clusters * 66 + 16
   }
-  // Level 3: header (40) + photo grid
-  const clusters = [...new Set(story.photos.map((p) => p.cluster))].length
-  const gridH = story.photos.reduce((total, _, i, arr) => {
-    // Count rows per cluster (3 per row)
-    if (i === 0) {
-      let h = 0
-      const grouped = {}
-      for (const p of arr) {
-        grouped[p.cluster] = (grouped[p.cluster] || 0) + 1
-      }
-      for (const count of Object.values(grouped)) {
-        h += Math.ceil(count / 3) * 100 + 28 // 100px per photo row + cluster label
-      }
-      return h
-    }
-    return total
-  }, 0)
+  // Level 3: header (40) + photo grid with per-photo metadata
+  // Each photo cell: ~140px (4:3 at ~170px wide) + ~40px metadata text
+  const grouped = {}
+  for (const p of story.photos) {
+    grouped[p.cluster] = (grouped[p.cluster] || 0) + 1
+  }
+  let gridH = 0
+  for (const count of Object.values(grouped)) {
+    gridH += Math.ceil(count / 3) * 180 + 32 // 180px per row + cluster label
+  }
   return 40 + gridH + 24
 }

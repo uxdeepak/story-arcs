@@ -17,7 +17,7 @@ const YEAR_MS = YEAR_END - YEAR_START
  * gradient derived from each story's mood (warm/calm/euphoric). Draws itself
  * left-to-right on page load via stroke-dasharray animation.
  */
-export default function MoodRiver({ stories, totalWidth, paddingLeft, onDrawComplete }) {
+export default function MoodRiver({ stories, totalWidth, paddingLeft, onDrawComplete, riverY }) {
   const lineRef = useRef(null)
   const glowRef = useRef(null)
 
@@ -109,7 +109,7 @@ export default function MoodRiver({ stories, totalWidth, paddingLeft, onDrawComp
       {/* Main river line — draw animation */}
       <div
         className="absolute left-0 right-0"
-        style={{ top: '50%', height: '2px' }}
+        style={{ top: riverY != null ? riverY : '50%', height: '2px' }}
       >
         <svg width={totalWidth} height={2} className="absolute top-0 left-0">
           <line
@@ -131,7 +131,7 @@ export default function MoodRiver({ stories, totalWidth, paddingLeft, onDrawComp
       {/* River glow — fades in with the draw */}
       <div
         className="absolute left-0 right-0 pointer-events-none"
-        style={{ top: 'calc(50% - 14px)', height: '28px' }}
+        style={{ top: riverY != null ? riverY - 14 : 'calc(50% - 14px)', height: '28px' }}
       >
         <svg width={totalWidth} height={28} className="absolute top-0 left-0">
           <rect

@@ -7,7 +7,7 @@ const YEAR_MS = YEAR_END - YEAR_START
 // Number of buckets across the year for density sampling
 const BUCKETS = 52 // ~weekly
 
-export default function DensityStrip({ stories, loosePhotos, totalWidth, paddingLeft }) {
+export default function DensityStrip({ stories, loosePhotos, totalWidth, paddingLeft, riverY }) {
   const densityData = useMemo(() => {
     // Collect all photo timestamps
     const allTimestamps = []
@@ -39,7 +39,7 @@ export default function DensityStrip({ stories, loosePhotos, totalWidth, padding
   return (
     <div
       className="absolute left-0 right-0 pointer-events-none"
-      style={{ top: 'calc(50% + 4px)', height: '20px' }}
+      style={{ top: riverY != null ? riverY + 4 : 'calc(50% + 4px)', height: '20px' }}
     >
       <svg
         width={totalWidth}

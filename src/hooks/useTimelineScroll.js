@@ -7,7 +7,7 @@ const SCROLL_STEP = 300
  * translates vertical wheel input to horizontal scroll, handles keyboard
  * arrows/Home/End, and provides minimap drag support.
  */
-export default function useTimelineScroll(scrollRef, totalWidth) {
+export default function useTimelineScroll(scrollRef, totalWidth, { verticalScroll = false } = {}) {
   const [scrollLeft, setScrollLeft] = useState(0)
   const [viewportWidth, setViewportWidth] = useState(0)
   const isDragging = useRef(false)
@@ -43,6 +43,8 @@ export default function useTimelineScroll(scrollRef, totalWidth) {
       if (e.ctrlKey) return
       // If shift is held or it's a horizontal scroll, let it through naturally
       if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return
+      // When vertical scrolling is enabled, don't hijack vertical wheel
+      if (verticalScroll) return
 
       e.preventDefault()
       // Apply vertical delta as horizontal scroll with momentum multiplier
@@ -51,7 +53,7 @@ export default function useTimelineScroll(scrollRef, totalWidth) {
 
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  }, [scrollRef])
+  }, [scrollRef, verticalScroll])
 
   // Keyboard navigation
   useEffect(() => {

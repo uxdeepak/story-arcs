@@ -171,7 +171,7 @@ export default function RiverTimeline() {
     viewportFraction,
     scrollTo,
     startMinimapDrag,
-  } = useTimelineScroll(scrollRef, TOTAL_WIDTH)
+  } = useTimelineScroll(scrollRef, TOTAL_WIDTH, { verticalScroll: zoomLevel >= 2 })
 
   const islandLayout = useMemo(
     () =>
@@ -183,6 +183,24 @@ export default function RiverTimeline() {
       }),
     [zoomLevel, zm] // eslint-disable-line react-hooks/exhaustive-deps
   )
+
+  // Compute canvas dimensions for higher zoom levels where cards may overflow viewport
+  const { requiredCanvasHeight, riverY: fixedRiverY } = useMemo(() => {
+    if (zoomLevel <= 1) return { requiredCanvasHeight: 0, riverY: null }
+    let maxAbove = 0
+    let maxBelow = 0
+    const stackGap = 16
+    for (const item of islandLayout) {
+      const extent = ISLAND_GAP_FROM_RIVER + item.height + item.level * (item.height + stackGap)
+      if (item.side === 'above') maxAbove = Math.max(maxAbove, extent)
+      else maxBelow = Math.max(maxBelow, extent)
+    }
+    const riverY = maxAbove + 40 // 40px top padding
+    return {
+      requiredCanvasHeight: riverY + maxBelow + 40,
+      riverY,
+    }
+  }, [islandLayout, zoomLevel, ISLAND_GAP_FROM_RIVER])
 
   const gaps = useMemo(
     () => findGaps(storyArcs, TOTAL_WIDTH, PADDING_LEFT),
@@ -207,6 +225,15 @@ export default function RiverTimeline() {
     const firstX = Math.min(...islandLayout.map((p) => p.x))
     el.scrollLeft = Math.max(0, firstX - 80)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Center vertically on the river when entering tall zoom levels
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el || fixedRiverY == null) return
+    requestAnimationFrame(() => {
+      el.scrollTop = Math.max(0, fixedRiverY - el.clientHeight / 2)
+    })
+  }, [fixedRiverY]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [headerRef, headerVisible] = useInView()
   const [footerRef, footerVisible] = useInView()
@@ -267,7 +294,7 @@ export default function RiverTimeline() {
       <div className="flex-1 relative overflow-hidden">
         <div
           ref={scrollRef}
-          className="h-full overflow-x-auto overflow-y-hidden relative outline-none"
+          className={`h-full overflow-x-auto relative outline-none ${zoomLevel >= 2 ? 'overflow-y-auto' : 'overflow-y-hidden'}`}
           tabIndex={0}
           role="region"
           aria-label="Timeline — scroll horizontally to explore stories, Ctrl+scroll or pinch to zoom"
@@ -277,7 +304,7 @@ export default function RiverTimeline() {
             className="relative"
             style={{
               width: TOTAL_WIDTH,
-              height: '100%',
+              height: requiredCanvasHeight > 0 ? requiredCanvasHeight : '100%',
               minHeight: '100%',
               transition: 'width 350ms cubic-bezier(0.22, 1, 0.36, 1)',
             }}
@@ -288,6 +315,7 @@ export default function RiverTimeline() {
               totalWidth={TOTAL_WIDTH}
               paddingLeft={PADDING_LEFT}
               onDrawComplete={handleRiverDrawComplete}
+              riverY={fixedRiverY}
             />
 
             {/* ── Gap dashed lines ─────────────────────────────────── */}
@@ -298,7 +326,7 @@ export default function RiverTimeline() {
                 style={{
                   left: gap.startX,
                   width: gap.endX - gap.startX,
-                  top: 'calc(50%)',
+                  top: fixedRiverY != null ? fixedRiverY : '50%',
                   height: '1px',
                   backgroundImage: `repeating-linear-gradient(to right,
                     var(--color-text-muted) 0px,
@@ -316,6 +344,7 @@ export default function RiverTimeline() {
               loosePhotos={loosePhotos}
               totalWidth={TOTAL_WIDTH}
               paddingLeft={PADDING_LEFT}
+              riverY={fixedRiverY}
             />
 
             {/* ── Month Markers ────────────────────────────────────── */}
@@ -327,7 +356,7 @@ export default function RiverTimeline() {
                     className="absolute"
                     style={{
                       left: 0,
-                      top: 'calc(50% - 16px)',
+                      top: fixedRiverY != null ? fixedRiverY - 16 : 'calc(50% - 16px)',
                       width: '1px',
                       height: '32px',
                       backgroundColor: 'var(--color-border)',
@@ -338,7 +367,7 @@ export default function RiverTimeline() {
                     className="absolute rounded-full"
                     style={{
                       left: '-2px',
-                      top: 'calc(50% - 2px)',
+                      top: fixedRiverY != null ? fixedRiverY - 2 : 'calc(50% - 2px)',
                       width: '5px',
                       height: '5px',
                       backgroundColor: 'var(--color-accent)',
@@ -349,7 +378,7 @@ export default function RiverTimeline() {
                     className="absolute text-[11px] lg:text-xs font-medium select-none month-label-enter"
                     style={{
                       left: '8px',
-                      top: 'calc(50% + 20px)',
+                      top: fixedRiverY != null ? fixedRiverY + 20 : 'calc(50% + 20px)',
                       color: 'var(--color-text-secondary)',
                       letterSpacing: '0.05em',
                       animationDelay: `${1.5 + i * 0.06}s`,
@@ -366,6 +395,7 @@ export default function RiverTimeline() {
               loosePhotos={loosePhotos}
               totalWidth={TOTAL_WIDTH}
               paddingLeft={PADDING_LEFT}
+              riverY={fixedRiverY}
             />
 
             {/* ── Connection Threads (SVG overlay) ─────────────────── */}
@@ -380,15 +410,24 @@ export default function RiverTimeline() {
 
             {/* ── Story Islands ────────────────────────────────────── */}
             {islandLayout.map(({ story, originalIndex, x, width, height, side, level }) => {
-              // Compute cumulative stack offset by summing heights of islands below in same column
               const stackGap = 16
               const stackOffset = level * (height + stackGap)
 
               let top
-              if (side === 'above') {
-                top = `calc(50% - ${ISLAND_GAP_FROM_RIVER + height + stackOffset}px)`
+              if (fixedRiverY != null) {
+                // Absolute positioning for tall zoom levels
+                if (side === 'above') {
+                  top = fixedRiverY - ISLAND_GAP_FROM_RIVER - height - stackOffset
+                } else {
+                  top = fixedRiverY + ISLAND_GAP_FROM_RIVER + stackOffset
+                }
               } else {
-                top = `calc(50% + ${ISLAND_GAP_FROM_RIVER + stackOffset}px)`
+                // CSS calc for viewport-centered zoom levels
+                if (side === 'above') {
+                  top = `calc(50% - ${ISLAND_GAP_FROM_RIVER + height + stackOffset}px)`
+                } else {
+                  top = `calc(50% + ${ISLAND_GAP_FROM_RIVER + stackOffset}px)`
+                }
               }
 
               return (
@@ -403,7 +442,7 @@ export default function RiverTimeline() {
                     left: x,
                     top,
                     width,
-                    height,
+                    ...(zoomLevel >= 2 ? { minHeight: height } : { height }),
                   }}
                 />
               )
@@ -414,7 +453,7 @@ export default function RiverTimeline() {
               className="absolute text-sm font-medium"
               style={{
                 left: PADDING_LEFT - 60 * zm,
-                top: 'calc(50% - 8px)',
+                top: fixedRiverY != null ? fixedRiverY - 8 : 'calc(50% - 8px)',
                 color: 'var(--color-text-muted)',
                 fontFamily: 'var(--font-serif)',
               }}
