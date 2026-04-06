@@ -1,7 +1,7 @@
 import { useRef, useMemo, useEffect, useState, useCallback } from 'react'
 import useInView from '../hooks/useInView.js'
 import { storyArcs, loosePhotos, totalPhotos } from '../data/demoData.js'
-import StoryIsland from '../components/StoryIsland.jsx'
+import StoryIsland, { getIslandHeight } from '../components/StoryIsland.jsx'
 import Minimap from '../components/Minimap.jsx'
 import ConnectionThreads from '../components/ConnectionThreads.jsx'
 import DensityStrip from '../components/DensityStrip.jsx'
@@ -14,13 +14,20 @@ import useTimelineZoom from '../hooks/useTimelineZoom.js'
 // ─── Base layout constants (at zoom multiplier 1.0) ─────────────────
 const BASE_MONTH_WIDTH = 300
 const BASE_TOTAL_WIDTH = BASE_MONTH_WIDTH * 12 + 200
-const BASE_ISLAND_W = 180
-const BASE_PER_PHOTO_W = 16
-const BASE_ISLAND_MAX_W = 340
-const BASE_ISLAND_HEIGHT = 190
 const BASE_GAP_FROM_RIVER = 28
-const BASE_OVERLAP_OFFSET_Y = 210
 const BASE_PADDING_LEFT = 100
+
+// Width strategies per zoom level — each level has different card sizes
+const ISLAND_WIDTH_CONFIG = [
+  // Level 0 — compact pills
+  { baseW: 110, perPhotoW: 0, maxW: 160 },
+  // Level 1 — story cards
+  { baseW: 180, perPhotoW: 16, maxW: 340 },
+  // Level 2 — expanded cards with photo strips
+  { baseW: 280, perPhotoW: 12, maxW: 480 },
+  // Level 3 — full detail with photo grid
+  { baseW: 340, perPhotoW: 10, maxW: 560 },
+]
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -45,7 +52,8 @@ function storyMidX(story, totalWidth, paddingLeft) {
 
 // ─── Compute island positions with overlap stacking ──────────────────
 function computeIslandLayout(stories, opts) {
-  const { baseW, perPhotoW, maxW, totalWidth, paddingLeft, islandHeight, gapFromRiver, overlapOffsetY } = opts
+  const { totalWidth, paddingLeft, gapFromRiver, zoomLevel } = opts
+  const wCfg = ISLAND_WIDTH_CONFIG[zoomLevel] || ISLAND_WIDTH_CONFIG[1]
 
   const sorted = [...stories]
     .map((s, originalIndex) => ({ story: s, originalIndex }))
@@ -55,7 +63,8 @@ function computeIslandLayout(stories, opts) {
   const rows = { above: [], below: [] }
 
   sorted.forEach(({ story, originalIndex }, sortedIndex) => {
-    const width = Math.min(baseW + story.photos.length * perPhotoW, maxW)
+    const width = Math.min(wCfg.baseW + story.photos.length * wCfg.perPhotoW, wCfg.maxW)
+    const height = getIslandHeight(story, zoomLevel)
     const midX = storyMidX(story, totalWidth, paddingLeft)
     const x = midX - width / 2
 
@@ -84,9 +93,9 @@ function computeIslandLayout(stories, opts) {
       level = alternateLevel
     }
 
-    rows[side].push({ x1: x, x2: x + width, level })
+    rows[side].push({ x1: x, x2: x + width, level, height })
 
-    positions.push({ story, originalIndex, x, width, side, level })
+    positions.push({ story, originalIndex, x, width, height, side, level })
   })
 
   return positions
@@ -154,12 +163,7 @@ export default function RiverTimeline() {
   const zm = zoomMultiplier
   const TOTAL_WIDTH = BASE_TOTAL_WIDTH * zm
   const MONTH_WIDTH = BASE_MONTH_WIDTH * zm
-  const ISLAND_BASE_W = BASE_ISLAND_W * zm
-  const ISLAND_PER_PHOTO_W = BASE_PER_PHOTO_W * zm
-  const ISLAND_MAX_W = BASE_ISLAND_MAX_W * zm
-  const ISLAND_HEIGHT = BASE_ISLAND_HEIGHT * zm
   const ISLAND_GAP_FROM_RIVER = BASE_GAP_FROM_RIVER * zm
-  const OVERLAP_OFFSET_Y = BASE_OVERLAP_OFFSET_Y * zm
   const PADDING_LEFT = BASE_PADDING_LEFT * zm
 
   const {
@@ -172,16 +176,12 @@ export default function RiverTimeline() {
   const islandLayout = useMemo(
     () =>
       computeIslandLayout(storyArcs, {
-        baseW: ISLAND_BASE_W,
-        perPhotoW: ISLAND_PER_PHOTO_W,
-        maxW: ISLAND_MAX_W,
         totalWidth: TOTAL_WIDTH,
         paddingLeft: PADDING_LEFT,
-        islandHeight: ISLAND_HEIGHT,
         gapFromRiver: ISLAND_GAP_FROM_RIVER,
-        overlapOffsetY: OVERLAP_OFFSET_Y,
+        zoomLevel,
       }),
-    [zm] // eslint-disable-line react-hooks/exhaustive-deps
+    [zoomLevel, zm] // eslint-disable-line react-hooks/exhaustive-deps
   )
 
   const gaps = useMemo(
@@ -373,21 +373,20 @@ export default function RiverTimeline() {
               stories={storyArcs}
               islandLayout={islandLayout}
               hoveredStoryId={hoveredStoryId}
-              islandHeight={ISLAND_HEIGHT}
-              riverGapFromRiver={ISLAND_GAP_FROM_RIVER}
-              overlapOffsetY={OVERLAP_OFFSET_Y}
+              gapFromRiver={ISLAND_GAP_FROM_RIVER}
               totalWidth={TOTAL_WIDTH}
               canvasHeight={canvasHeight}
             />
 
             {/* ── Story Islands ────────────────────────────────────── */}
-            {islandLayout.map(({ story, originalIndex, x, width, side, level }) => {
-              const baseOffset = ISLAND_GAP_FROM_RIVER + ISLAND_HEIGHT / 2
-              const stackOffset = level * OVERLAP_OFFSET_Y
+            {islandLayout.map(({ story, originalIndex, x, width, height, side, level }) => {
+              // Compute cumulative stack offset by summing heights of islands below in same column
+              const stackGap = 16
+              const stackOffset = level * (height + stackGap)
 
               let top
               if (side === 'above') {
-                top = `calc(50% - ${baseOffset + stackOffset}px - ${ISLAND_HEIGHT / 2}px)`
+                top = `calc(50% - ${ISLAND_GAP_FROM_RIVER + height + stackOffset}px)`
               } else {
                 top = `calc(50% + ${ISLAND_GAP_FROM_RIVER + stackOffset}px)`
               }
@@ -404,7 +403,7 @@ export default function RiverTimeline() {
                     left: x,
                     top,
                     width,
-                    height: ISLAND_HEIGHT,
+                    height,
                   }}
                 />
               )

@@ -10,9 +10,7 @@ export default function ConnectionThreads({
   stories,
   islandLayout,
   hoveredStoryId,
-  islandHeight,
-  riverGapFromRiver,
-  overlapOffsetY,
+  gapFromRiver,
   totalWidth,
   canvasHeight,
 }) {
@@ -58,13 +56,14 @@ export default function ConnectionThreads({
   // Get the center point of an island
   function getIslandCenter(item) {
     const cx = item.x + item.width / 2
-    const baseOffset = riverGapFromRiver + islandHeight / 2
-    const stackOffset = item.level * overlapOffsetY
+    const h = item.height || 190
+    const stackGap = 16
+    const stackOffset = item.level * (h + stackGap)
     let cy
     if (item.side === 'above') {
-      cy = riverY - baseOffset - stackOffset - islandHeight / 2 + islandHeight / 2
+      cy = riverY - gapFromRiver - h / 2 - stackOffset
     } else {
-      cy = riverY + riverGapFromRiver + stackOffset + islandHeight / 2
+      cy = riverY + gapFromRiver + h / 2 + stackOffset
     }
     return { cx, cy }
   }
