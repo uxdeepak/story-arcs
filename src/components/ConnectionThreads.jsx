@@ -13,8 +13,9 @@ export default function ConnectionThreads({
   gapFromRiver,
   totalWidth,
   canvasHeight,
+  riverY: riverYProp,
 }) {
-  const riverY = canvasHeight / 2
+  const riverY = riverYProp != null ? riverYProp : canvasHeight / 2
 
   // Build a lookup: storyId -> layout position
   const layoutMap = useMemo(() => {

@@ -139,10 +139,10 @@ export default function PhotoNode({
           }}
           transition={{ duration: 0.25 }}
         >
-          <p className="text-[11px] font-medium" style={{ color: 'var(--color-text-primary)' }}>
+          <p className="text-[13px] font-medium" style={{ color: 'var(--color-text-primary)' }}>
             {formatShortTime(photo.timestamp)}
           </p>
-          <p className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>
+          <p className="text-[13px]" style={{ color: 'var(--color-text-secondary)' }}>
             {photo.location}
           </p>
           {photo.people.length > 0 && (

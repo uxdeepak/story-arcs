@@ -7,8 +7,8 @@
   --color-surface: #242220;
   --color-surface-elevated: #2E2C29;
   --color-text-primary: #F5F2EE;
-  --color-text-secondary: #B5B0AA;
-  --color-text-muted: #847E78;
+  --color-text-secondary: #C9C4BD;
+  --color-text-muted: #9A938C;
   --color-accent: #C4724E;
   --color-accent-hover: #D4836A;
   --color-accent-subtle: rgba(196, 114, 78, 0.15);
@@ -45,8 +45,8 @@
   --color-surface: #EDE8E1;
   --color-surface-elevated: #E4DED5;
   --color-text-primary: #1A1918;
-  --color-text-secondary: #4A4540;
-  --color-text-muted: #6E6862;
+  --color-text-secondary: #3A3530;
+  --color-text-muted: #5A544E;
   --color-accent: #B85E3A;
   --color-accent-hover: #A04F2E;
   --color-accent-subtle: rgba(184, 94, 58, 0.12);
@@ -133,6 +133,21 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 256px 256px;
+}
+
+/* ── Splash screen animations ──────────────────────────────────────── */
+@keyframes splash-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes splash-dot {
+  0%   { opacity: 0; transform: scale(0); }
+  60%  { opacity: 1; transform: scale(1.4); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes splash-river {
+  to { stroke-dashoffset: 0; }
 }
 
 /* ── River draw animation ───────────────────────────────────────────── */

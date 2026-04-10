@@ -2,6 +2,14 @@ import { useRef, useCallback, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const MONTHS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D']
+// Quarter anchors — only these get text labels; others get thin tick marks
+const QUARTER_LABELS = [
+  { idx: 0, label: 'Jan' },
+  { idx: 3, label: 'Apr' },
+  { idx: 6, label: 'Jul' },
+  { idx: 9, label: 'Oct' },
+  { idx: 12, label: 'Dec' },
+]
 
 const MOOD_COLORS = {
   warm: '#C4724E',
@@ -135,91 +143,172 @@ export default function Minimap({
     ? storyPositions.find((sp) => sp.story.id === hoveredStory.id)?.coverUrl
     : null
 
+  // ── Layout constants for the unified timeline strip ──
+  const STRIP_HEIGHT = 48
+  const AXIS_Y = 22 // y-position of the horizontal axis line within the strip
+  const MARKER_RADIUS = 5
+
   return (
-    <div className="flex flex-col gap-0.5 flex-1 min-w-0 max-w-[560px]">
-      {/* Main bar */}
+    <div className="flex flex-col flex-1 min-w-0 max-w-[560px]">
+      {/* Unified timeline strip */}
       <div
         ref={barRef}
-        className="relative rounded-full overflow-visible"
+        className="relative overflow-visible"
         style={{
-          backgroundColor: 'var(--color-surface)',
-          height: isDragging ? 28 : 24,
-          transition: 'height 200ms ease',
+          height: STRIP_HEIGHT,
           cursor: hoveredStory ? 'pointer' : 'default',
         }}
         onClick={handleClick}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        {/* Rounded clip container */}
-        <div className="absolute inset-0 rounded-full overflow-hidden">
-          {/* Month tick marks */}
-          {MONTHS.map((_, i) => (
+        {/* Horizontal axis line */}
+        <div
+          className="absolute left-0 right-0"
+          style={{
+            top: AXIS_Y,
+            height: 2,
+            backgroundColor: 'var(--color-border)',
+            borderRadius: 1,
+          }}
+        />
+        {/* Axis end caps */}
+        <div
+          className="absolute"
+          style={{
+            left: 0,
+            top: AXIS_Y - 4,
+            width: 2,
+            height: 10,
+            backgroundColor: 'var(--color-text-muted)',
+            borderRadius: 1,
+          }}
+        />
+        <div
+          className="absolute"
+          style={{
+            right: 0,
+            top: AXIS_Y - 4,
+            width: 2,
+            height: 10,
+            backgroundColor: 'var(--color-text-muted)',
+            borderRadius: 1,
+          }}
+        />
+
+        {/* Month tick marks descending from the axis */}
+        {MONTHS.map((_, i) => {
+          if (i === 0) return null // start cap already drawn
+          const isQuarter = i % 3 === 0
+          return (
             <div
               key={i}
-              className="absolute top-0 h-full"
+              className="absolute"
               style={{
                 left: `${(i / 12) * 100}%`,
-                width: '1px',
-                backgroundColor: 'var(--color-border)',
-                opacity: 0.4,
+                top: AXIS_Y + 2,
+                width: 1,
+                height: isQuarter ? 8 : 4,
+                backgroundColor: 'var(--color-text-muted)',
+                opacity: isQuarter ? 0.85 : 0.4,
               }}
             />
-          ))}
+          )
+        })}
 
-          {/* Story markers — fixed-width pills at each story's midpoint */}
-          {storyPositions.map(({ story, midPct, color, photoCount }) => {
-            const isHovered = hoveredStory?.id === story.id
-            // Scale marker width slightly by photo count (more photos = slightly wider)
-            const w = MARKER_WIDTH_PCT + Math.min(photoCount / 10, 2)
-            return (
+        {/* Quarter labels below the axis */}
+        {QUARTER_LABELS.map(({ idx, label }) => {
+          const isLast = idx === 12
+          return (
+            <span
+              key={idx}
+              className="absolute text-[10px] font-medium select-none"
+              style={{
+                left: `${(idx / 12) * 100}%`,
+                top: AXIS_Y + 14,
+                transform: isLast ? 'translateX(-100%)' : 'translateX(0)',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1,
+                letterSpacing: '0.04em',
+              }}
+            >
+              {label}
+            </span>
+          )
+        })}
+
+        {/* Story markers — circular dots sitting ON the axis line */}
+        {storyPositions.map(({ story, midPct, color, photoCount }) => {
+          const isHovered = hoveredStory?.id === story.id
+          const r = MARKER_RADIUS + Math.min(photoCount / 6, 2.5)
+          return (
+            <div key={story.id}>
+              {/* Stem connecting marker to axis */}
               <div
-                key={story.id}
-                className="absolute rounded-full"
+                className="absolute"
                 style={{
-                  left: `${midPct - w / 2}%`,
-                  width: `${w}%`,
-                  minWidth: '6px',
-                  top: isHovered ? 2 : 4,
-                  bottom: isHovered ? 2 : 4,
+                  left: `${midPct}%`,
+                  top: AXIS_Y - 6,
+                  width: 1.5,
+                  height: 6,
+                  marginLeft: -0.75,
                   backgroundColor: color,
-                  opacity: isHovered ? 1 : 0.75,
-                  transition: 'opacity 150ms ease, top 150ms ease, bottom 150ms ease, filter 150ms ease',
-                  zIndex: isHovered ? 2 : 1,
-                  filter: isHovered ? 'brightness(1.2)' : 'none',
+                  opacity: isHovered ? 1 : 0.55,
+                  transition: 'opacity 150ms ease',
                 }}
               />
-            )
-          })}
+              {/* Dot */}
+              <div
+                className="absolute rounded-full"
+                style={{
+                  left: `${midPct}%`,
+                  top: AXIS_Y - 6 - r * 2,
+                  width: r * 2,
+                  height: r * 2,
+                  marginLeft: -r,
+                  backgroundColor: color,
+                  opacity: isHovered ? 1 : 0.85,
+                  transform: isHovered ? 'scale(1.25)' : 'scale(1)',
+                  transformOrigin: 'center bottom',
+                  transition: 'opacity 150ms ease, transform 150ms ease',
+                  boxShadow: isHovered ? `0 2px 8px ${color}88` : 'none',
+                  zIndex: isHovered ? 5 : 2,
+                }}
+              />
+            </div>
+          )
+        })}
 
-          {/* Viewport indicator */}
-          <div
-            className="absolute rounded-full"
-            style={{
-              left: `${viewLeft}%`,
-              width: `${viewWidth}%`,
-              minWidth: '8px',
-              top: 0,
-              bottom: 0,
-              border: isDragging
-                ? '2px solid var(--color-accent)'
-                : '1.5px solid var(--color-text-primary)',
-              opacity: isDragging ? 0.8 : 0.5,
-              backgroundColor: isDragging ? 'var(--color-accent-subtle)' : 'transparent',
-              transition: 'border-color 150ms ease, opacity 150ms ease, background-color 150ms ease',
-              pointerEvents: 'none',
-              zIndex: 3,
-            }}
-          />
-        </div>
-
-        {/* Draggable handle */}
+        {/* Viewport indicator — vertical bracket spanning the strip */}
         <div
-          className="absolute top-0 h-full cursor-grab active:cursor-grabbing"
+          className="absolute"
           style={{
             left: `${viewLeft}%`,
             width: `${viewWidth}%`,
-            minWidth: '8px',
+            minWidth: '10px',
+            top: AXIS_Y - 14,
+            height: 28,
+            border: isDragging
+              ? '1.5px solid var(--color-accent)'
+              : '1.5px solid var(--color-text-primary)',
+            borderRadius: 4,
+            opacity: isDragging ? 0.85 : 0.55,
+            backgroundColor: isDragging ? 'var(--color-accent-subtle)' : 'rgba(255,255,255,0.04)',
+            transition: 'border-color 150ms ease, opacity 150ms ease, background-color 150ms ease',
+            pointerEvents: 'none',
+            zIndex: 3,
+          }}
+        />
+
+        {/* Draggable handle */}
+        <div
+          className="absolute cursor-grab active:cursor-grabbing"
+          style={{
+            left: `${viewLeft}%`,
+            width: `${viewWidth}%`,
+            minWidth: '10px',
+            top: AXIS_Y - 14,
+            height: 28,
             zIndex: 4,
           }}
           onMouseDown={handleMouseDown}
@@ -275,12 +364,12 @@ export default function Minimap({
                   )}
                   <div className="px-2.5 pb-2 pt-1" style={{ marginTop: hoveredCover ? -16 : 0, position: 'relative' }}>
                     <p
-                      className="text-[11px] font-semibold leading-tight"
+                      className="text-[13px] font-semibold leading-tight"
                       style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-serif)' }}
                     >
                       {hoveredStory.title}
                     </p>
-                    <p className="text-[10px] leading-tight mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>
+                    <p className="text-[13px] leading-tight mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>
                       {formatShortDateRange(hoveredStory.dateRange.start, hoveredStory.dateRange.end)}
                       <span style={{ margin: '0 3px' }}>·</span>
                       {hoveredStory.photos.length} photos
@@ -290,7 +379,7 @@ export default function Minimap({
                         {hoveredStory.people.map((p) => (
                           <span
                             key={p}
-                            className="text-[9px] px-1.5 py-0.5 rounded-full"
+                            className="text-[14px] px-1.5 py-0.5 rounded-full"
                             style={{
                               backgroundColor: 'var(--color-accent-subtle)',
                               color: 'var(--color-accent)',
@@ -301,14 +390,14 @@ export default function Minimap({
                         ))}
                       </div>
                     )}
-                    <p className="text-[9px] mt-1.5" style={{ color: 'var(--color-text-muted)' }}>
+                    <p className="text-[14px] mt-1.5" style={{ color: 'var(--color-text-muted)' }}>
                       Click to open
                     </p>
                   </div>
                 </div>
               ) : (
                 <div className="px-2.5 py-1.5">
-                  <p className="text-[10px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                  <p className="text-[13px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
                     {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][hoverMonth]}
                   </p>
                 </div>
@@ -318,23 +407,6 @@ export default function Minimap({
         )}
       </div>
 
-      {/* Month labels below the bar */}
-      <div className="relative flex-1 min-w-0" style={{ height: 10 }}>
-        {MONTHS.map((label, i) => (
-          <span
-            key={i}
-            className="absolute text-[8px] select-none"
-            style={{
-              left: `${((i + 0.5) / 12) * 100}%`,
-              transform: 'translateX(-50%)',
-              color: 'var(--color-text-muted)',
-              lineHeight: 1,
-            }}
-          >
-            {label}
-          </span>
-        ))}
-      </div>
     </div>
   )
 }

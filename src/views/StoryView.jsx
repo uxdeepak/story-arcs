@@ -486,7 +486,7 @@ export default function StoryView() {
             {story.people.map((person) => (
               <div key={person} className="flex items-center gap-1.5">
                 <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold"
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-[14px] font-semibold"
                   style={{
                     backgroundColor: PERSON_COLORS[person] || 'var(--color-text-muted)',
                     color: 'var(--color-bg)',
@@ -495,7 +495,7 @@ export default function StoryView() {
                   {person[0]}
                 </div>
                 <span
-                  className="text-xs hidden lg:inline"
+                  className="text-[14px] hidden lg:inline"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
                   {person}
@@ -560,8 +560,8 @@ export default function StoryView() {
                 <InlineEditable
                   value={label.name}
                   onChange={(newName) => handleClusterRename(label.name, newName)}
-                  className="text-[11px] font-medium tracking-wide"
-                  style={{ color: 'var(--color-text-muted)' }}
+                  className="text-[15px] font-semibold tracking-tight"
+                  style={{ fontFamily: 'var(--font-serif)', color: 'var(--color-text-primary)' }}
                 />
               </motion.div>
             ))}
@@ -586,7 +586,7 @@ export default function StoryView() {
                   transition={{ duration: 0.35 }}
                 >
                   <span
-                    className="text-[10px] italic whitespace-nowrap"
+                    className="text-[13px] italic whitespace-nowrap"
                     style={{ color: 'var(--color-text-secondary)' }}
                   >
                     {annotations[hoveredCluster]}
@@ -684,7 +684,7 @@ export default function StoryView() {
               {dragState ? (
                 <motion.p
                   key="drag-hint"
-                  className="text-xs w-full text-center"
+                  className="text-[14px] w-full text-center"
                   style={{
                     color:
                       dragTarget === 'tray'
@@ -710,7 +710,7 @@ export default function StoryView() {
                   exit={{ opacity: 0 }}
                 >
                   <span
-                    className="text-[10px] uppercase tracking-widest shrink-0"
+                    className="text-[13px] uppercase tracking-widest shrink-0"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
                     Removed ({removedPhotos.length})

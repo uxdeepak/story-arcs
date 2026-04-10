@@ -216,7 +216,7 @@ export default function Lightbox({
                   <ChevronLeft size={16} />
                 </button>
                 <span
-                  className="text-xs px-2 min-w-[60px] text-center"
+                  className="text-[14px] px-2 min-w-[60px] text-center"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
                   {currentIndex + 1} of {photos.length}
@@ -252,7 +252,7 @@ export default function Lightbox({
                 </button>
                 {onRemove && (
                   <button
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer text-xs"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer text-[14px]"
                     style={{
                       color: 'var(--color-text-secondary)',
                       backgroundColor: 'transparent',
@@ -312,7 +312,7 @@ export default function Lightbox({
               {/* Date & time */}
               <div>
                 <p
-                  className="text-[10px] uppercase tracking-widest mb-2"
+                  className="text-[13px] uppercase tracking-widest mb-2"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
                   Date & Time
@@ -327,7 +327,7 @@ export default function Lightbox({
               {/* Location */}
               <div>
                 <p
-                  className="text-[10px] uppercase tracking-widest mb-2"
+                  className="text-[13px] uppercase tracking-widest mb-2"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
                   Location
@@ -346,7 +346,7 @@ export default function Lightbox({
                   <Divider />
                   <div>
                     <p
-                      className="text-[10px] uppercase tracking-widest mb-2"
+                      className="text-[13px] uppercase tracking-widest mb-2"
                       style={{ color: 'var(--color-text-muted)' }}
                     >
                       People
@@ -362,7 +362,7 @@ export default function Lightbox({
                           }}
                         >
                           <div
-                            className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold"
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-[14px] font-bold"
                             style={{
                               backgroundColor:
                                 PERSON_COLORS[person] || 'var(--color-text-muted)',
@@ -372,7 +372,7 @@ export default function Lightbox({
                             {person[0]}
                           </div>
                           <span
-                            className="text-xs"
+                            className="text-[14px]"
                             style={{ color: 'var(--color-text-secondary)' }}
                           >
                             {person}
@@ -389,13 +389,13 @@ export default function Lightbox({
               {/* Cluster */}
               <div>
                 <p
-                  className="text-[10px] uppercase tracking-widest mb-2"
+                  className="text-[13px] uppercase tracking-widest mb-2"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
                   Cluster
                 </p>
                 <span
-                  className="text-xs px-2.5 py-1 rounded-full inline-block"
+                  className="text-[14px] px-2.5 py-1 rounded-full inline-block"
                   style={{
                     backgroundColor: 'var(--color-accent-subtle)',
                     color: 'var(--color-accent)',
@@ -410,7 +410,7 @@ export default function Lightbox({
               {/* Story */}
               <div>
                 <p
-                  className="text-[10px] uppercase tracking-widest mb-2"
+                  className="text-[13px] uppercase tracking-widest mb-2"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
                   Story
@@ -432,7 +432,7 @@ export default function Lightbox({
                 >
                   {story.title}
                 </p>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+                <p className="text-[14px] mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
                   {story.primaryLocation}
                 </p>
               </div>

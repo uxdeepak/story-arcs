@@ -5,7 +5,6 @@ import { storyArcs, loosePhotos, totalPhotos } from '../data/demoData.js'
 import StoryIsland, { getIslandHeight } from '../components/StoryIsland.jsx'
 import Minimap from '../components/Minimap.jsx'
 import ConnectionThreads from '../components/ConnectionThreads.jsx'
-import DensityStrip from '../components/DensityStrip.jsx'
 import MoodRiver from '../components/MoodRiver.jsx'
 import LoosePhotoMarkers from '../components/LoosePhotoMarkers.jsx'
 import ZoomControls from '../components/ZoomControls.jsx'
@@ -15,19 +14,17 @@ import useTimelineZoom from '../hooks/useTimelineZoom.js'
 // ─── Base layout constants (at zoom multiplier 1.0) ─────────────────
 const BASE_MONTH_WIDTH = 300
 const BASE_TOTAL_WIDTH = BASE_MONTH_WIDTH * 12 + 200
-const BASE_GAP_FROM_RIVER = 28
+const BASE_GAP_FROM_RIVER = 44
 const BASE_PADDING_LEFT = 100
 
 // Width strategies per zoom level — each level has different card sizes
 const ISLAND_WIDTH_CONFIG = [
   // Level 0 — compact pills
-  { baseW: 110, perPhotoW: 0, maxW: 160 },
+  { baseW: 160, perPhotoW: 0, maxW: 280 },
   // Level 1 — story cards
   { baseW: 180, perPhotoW: 16, maxW: 340 },
   // Level 2 — expanded cards with photo strips
   { baseW: 280, perPhotoW: 12, maxW: 480 },
-  // Level 3 — full detail with photo grid
-  { baseW: 340, perPhotoW: 10, maxW: 560 },
 ]
 
 const MONTHS = [
@@ -305,14 +302,14 @@ export default function RiverTimeline() {
         </div>
 
         <div className="flex items-center gap-3 lg:gap-4 whitespace-nowrap">
-          <span className="text-[11px] lg:text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+          <span className="text-[13px] lg:text-[14px]" style={{ color: 'var(--color-text-secondary)' }}>
             {storyArcs.length} stories
           </span>
-          <span className="text-[11px] lg:text-xs hidden sm:inline" style={{ color: 'var(--color-text-secondary)' }}>
+          <span className="text-[13px] lg:text-[14px] hidden sm:inline" style={{ color: 'var(--color-text-secondary)' }}>
             {totalPhotos} photos
           </span>
           <span
-            className="text-[10px] px-2 py-0.5 rounded-full"
+            className="text-[13px] px-2 py-0.5 rounded-full"
             style={{
               backgroundColor: 'var(--color-accent-subtle)',
               color: 'var(--color-accent)',
@@ -371,15 +368,6 @@ export default function RiverTimeline() {
               />
             ))}
 
-            {/* ── Density Strip ────────────────────────────────────── */}
-            <DensityStrip
-              stories={storyArcs}
-              loosePhotos={loosePhotos}
-              totalWidth={TOTAL_WIDTH}
-              paddingLeft={PADDING_LEFT}
-              riverY={fixedRiverY}
-            />
-
             {/* ── Month Markers ────────────────────────────────────── */}
             {MONTHS.map((month, i) => {
               const x = PADDING_LEFT + i * MONTH_WIDTH
@@ -408,10 +396,10 @@ export default function RiverTimeline() {
                     }}
                   />
                   <span
-                    className="absolute text-[11px] lg:text-xs font-medium select-none month-label-enter"
+                    className="absolute text-[13px] lg:text-[14px] font-medium select-none month-label-enter"
                     style={{
                       left: '8px',
-                      top: fixedRiverY != null ? fixedRiverY + 20 : 'calc(50% + 20px)',
+                      top: fixedRiverY != null ? fixedRiverY + 8 : 'calc(50% + 8px)',
                       color: 'var(--color-text-secondary)',
                       letterSpacing: '0.05em',
                       animationDelay: `${1.5 + i * 0.06}s`,
@@ -439,6 +427,7 @@ export default function RiverTimeline() {
               gapFromRiver={ISLAND_GAP_FROM_RIVER}
               totalWidth={TOTAL_WIDTH}
               canvasHeight={canvasHeight}
+              riverY={fixedRiverY}
             />
 
             {/* ── Story Islands ────────────────────────────────────── */}
@@ -525,7 +514,7 @@ export default function RiverTimeline() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25 }}
             >
-              <span className="text-xs font-medium" style={{ color: 'var(--color-accent)' }}>
+              <span className="text-[14px] font-medium" style={{ color: 'var(--color-accent)' }}>
                 {zoomToast}
               </span>
             </motion.div>
@@ -544,13 +533,13 @@ export default function RiverTimeline() {
               boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
             }}
           >
-            <span className="text-[11px] font-medium" style={{ color: 'var(--color-text-primary)' }}>
+            <span className="text-[13px] font-medium" style={{ color: 'var(--color-text-primary)' }}>
               {visibleContext.time}
             </span>
             {visibleContext.storyCount > 0 && (
               <>
-                <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>·</span>
-                <span className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>
+                <span className="text-[13px]" style={{ color: 'var(--color-text-muted)' }}>·</span>
+                <span className="text-[13px]" style={{ color: 'var(--color-text-secondary)' }}>
                   {visibleContext.storyCount} {visibleContext.storyCount === 1 ? 'story' : 'stories'} in view
                 </span>
               </>
@@ -568,10 +557,10 @@ export default function RiverTimeline() {
           borderTop: '1px solid var(--color-border)',
         }}
       >
-        <span className="text-[10px] lg:text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+        <span className="text-[13px] lg:text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
           Scroll or ← → to navigate · Ctrl+scroll or pinch to zoom · Click a story to explore
         </span>
-        <span className="text-[10px] lg:text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+        <span className="text-[13px] lg:text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
           Story Arcs — Your year in stories
         </span>
       </div>

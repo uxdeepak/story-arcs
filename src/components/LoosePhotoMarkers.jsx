@@ -53,7 +53,7 @@ export default function LoosePhotoMarkers({ loosePhotos, totalWidth, paddingLeft
             />
             {/* Label */}
             <span
-              className="text-[9px] mt-1 whitespace-nowrap"
+              className="text-[14px] mt-1 whitespace-nowrap"
               style={{
                 color: 'var(--color-text-muted)',
               }}

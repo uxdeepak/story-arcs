@@ -57,6 +57,11 @@ function IslandWrapper({ story, style, index, onHover, zoomLevel, isHovered, set
   // Separate positioning props (animated via CSS) from size props
   const { left, top, width, height, minHeight, ...restStyle } = style
 
+  // Hover preview thumbnails for compact zoom levels (0, 1) where photos aren't visible inline
+  const previewPhotos = zoomLevel <= 1
+    ? story.photos.filter((_, i) => i !== story.coverPhotoIndex).slice(0, 4)
+    : []
+
   return (
     <motion.div
       className="absolute cursor-pointer"
@@ -101,6 +106,40 @@ function IslandWrapper({ story, style, index, onHover, zoomLevel, isHovered, set
           {children}
         </motion.div>
       </AnimatePresence>
+
+      {/* Hover preview thumbnails — restored from earlier design */}
+      {previewPhotos.length > 0 && (
+        <motion.div
+          className="absolute left-1/2 flex gap-1.5 pointer-events-none"
+          style={{ top: '100%', marginTop: 8, transform: 'translateX(-50%)' }}
+          animate={{
+            opacity: isHovered ? 1 : 0,
+            y: isHovered ? 0 : -8,
+          }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {previewPhotos.map((photo, i) => (
+            <motion.div
+              key={photo.id}
+              className="rounded-md overflow-hidden"
+              style={{
+                width: 44,
+                height: 44,
+                border: '1px solid var(--color-border)',
+                boxShadow: 'var(--shadow-tooltip)',
+                backgroundColor: 'var(--color-surface-elevated)',
+              }}
+              animate={{
+                rotate: isHovered ? (i - 1.5) * 4 : 0,
+                y: isHovered ? Math.abs(i - 1.5) * 3 : 0,
+              }}
+              transition={{ duration: 0.4, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <img src={photo.url} alt="" className="w-full h-full object-cover" loading="lazy" />
+            </motion.div>
+          ))}
+        </motion.div>
+      )}
     </motion.div>
   )
 }
@@ -159,12 +198,12 @@ export default function StoryIsland({ story, style, index, onHover, zoomLevel = 
           transition={{ duration: 0.25 }}
         >
           <h3
-            className="text-[11px] font-semibold truncate flex-1"
+            className="text-[13px] font-semibold truncate flex-1"
             style={{ fontFamily: 'var(--font-serif)', color: 'var(--color-text-primary)' }}
           >
             {story.title}
           </h3>
-          <span className="text-[9px] shrink-0" style={{ color: 'var(--color-text-muted)' }}>
+          <span className="text-[14px] shrink-0" style={{ color: 'var(--color-text-muted)' }}>
             {story.photos.length}
           </span>
         </motion.div>
@@ -177,7 +216,7 @@ export default function StoryIsland({ story, style, index, onHover, zoomLevel = 
   // New info vs Level 0: cover photo, date range, location, people
   // ────────────────────────────────────────────────────────────────────
   if (zoomLevel === 1) {
-    const photoH = Math.round(style.height * 0.55)
+    const photoH = Math.round(style.height * 0.62)
     const infoH = style.height - photoH
 
     return (
@@ -200,7 +239,7 @@ export default function StoryIsland({ story, style, index, onHover, zoomLevel = 
           <div className="relative overflow-hidden" style={{ height: photoH }}>
             <img src={coverPhoto.url} alt="" className="w-full h-full object-cover" loading="lazy" />
             <div
-              className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full text-[10px] font-medium"
+              className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full text-[13px] font-medium"
               style={{ backgroundColor: 'var(--color-overlay-badge)', color: 'var(--color-text-secondary)', backdropFilter: 'blur(6px)' }}
             >
               {story.photos.length}
@@ -210,12 +249,12 @@ export default function StoryIsland({ story, style, index, onHover, zoomLevel = 
           {/* Info region */}
           <div className="p-2.5 flex flex-col justify-between" style={{ height: infoH }}>
             <h3
-              className="text-[13px] font-semibold leading-tight truncate"
+              className="text-[17px] font-semibold leading-tight truncate"
               style={{ fontFamily: 'var(--font-serif)', color: 'var(--color-text-primary)' }}
             >
               {story.title}
             </h3>
-            <p className="text-[10px] truncate" style={{ color: 'var(--color-text-secondary)' }}>
+            <p className="text-[12px] truncate" style={{ color: 'var(--color-text-secondary)' }}>
               {formatDateRange(story.dateRange.start, story.dateRange.end)}
               <span style={{ margin: '0 3px', color: 'var(--color-text-muted)' }}>·</span>
               {story.primaryLocation}
@@ -225,7 +264,7 @@ export default function StoryIsland({ story, style, index, onHover, zoomLevel = 
                 {story.people.map((p) => (
                   <div key={p} className="flex items-center gap-0.5">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PERSON_COLORS[p] || 'var(--color-text-muted)' }} />
-                    <span className="text-[9px]" style={{ color: 'var(--color-text-secondary)' }}>{p}</span>
+                    <span className="text-[14px]" style={{ color: 'var(--color-text-secondary)' }}>{p}</span>
                   </div>
                 ))}
               </div>
@@ -241,7 +280,6 @@ export default function StoryIsland({ story, style, index, onHover, zoomLevel = 
   // New info vs Level 1: all photo thumbnails, cluster groupings, annotations
   // ────────────────────────────────────────────────────────────────────
   if (zoomLevel === 2) {
-    const cardH = 160
     const clusters = groupByCluster(story.photos)
     const annotations = clusterAnnotations[story.id] || {}
 
@@ -253,6 +291,7 @@ export default function StoryIsland({ story, style, index, onHover, zoomLevel = 
             width: style.width,
             backgroundColor: 'var(--color-surface-elevated)',
             border: '1px solid var(--color-border)',
+            borderLeft: `3px solid ${moodColor}`,
           }}
           animate={{
             scale: isHovered ? 1.02 : 1,
@@ -260,67 +299,63 @@ export default function StoryIsland({ story, style, index, onHover, zoomLevel = 
           }}
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
         >
-          {/* Cover photo + info (compact) */}
-          <div className="flex" style={{ height: cardH }}>
-            <div className="relative shrink-0" style={{ width: Math.round(style.width * 0.4) }}>
-              <img src={coverPhoto.url} alt="" className="w-full h-full object-cover" loading="lazy" />
-            </div>
-            <div className="flex-1 p-3 flex flex-col justify-between min-w-0">
-              <div>
-                <h3
-                  className="text-sm font-semibold leading-tight"
-                  style={{ fontFamily: 'var(--font-serif)', color: 'var(--color-text-primary)' }}
-                >
-                  {story.title}
-                </h3>
-                <p className="text-[11px] mt-1" style={{ color: 'var(--color-text-secondary)' }}>
-                  {formatDateRange(story.dateRange.start, story.dateRange.end)}
-                </p>
-                <p className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
-                  {story.primaryLocation}
-                </p>
-              </div>
-              {story.people.length > 0 && (
-                <div className="flex gap-1.5 mt-1">
-                  {story.people.map((p) => (
-                    <div key={p} className="flex items-center gap-1">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PERSON_COLORS[p] || 'var(--color-text-muted)' }} />
-                      <span className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>{p}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <span className="text-[10px] mt-1" style={{ color: 'var(--color-text-muted)' }}>
-                {story.photos.length} photos · {clusters.length} clusters
+          {/* Compact header — no big cover image */}
+          <div className="px-4 pt-3 pb-2.5">
+            <div className="flex items-baseline justify-between gap-3">
+              <h3
+                className="text-[16px] font-semibold leading-tight truncate"
+                style={{ fontFamily: 'var(--font-serif)', color: 'var(--color-text-primary)' }}
+              >
+                {story.title}
+              </h3>
+              <span className="text-[14px] shrink-0" style={{ color: 'var(--color-text-muted)' }}>
+                {story.photos.length} photos
               </span>
             </div>
+            <p className="text-[14px] mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+              {formatDateRange(story.dateRange.start, story.dateRange.end)}
+              <span style={{ margin: '0 6px', color: 'var(--color-text-muted)' }}>·</span>
+              {story.primaryLocation}
+            </p>
+            {story.people.length > 0 && (
+              <div className="flex gap-2 mt-2">
+                {story.people.map((p) => (
+                  <div key={p} className="flex items-center gap-1.5 px-2 py-0.5 rounded-full"
+                    style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+                  >
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PERSON_COLORS[p] || 'var(--color-text-muted)' }} />
+                    <span className="text-[13px]" style={{ color: 'var(--color-text-secondary)' }}>{p}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Clustered photo strip */}
+          {/* Cluster rows — heading + horizontal photo row, larger thumbs */}
           <div
-            className="px-3 pb-3 pt-2 flex flex-col gap-2"
+            className="px-4 pt-2 pb-3 flex flex-col gap-3"
             style={{ borderTop: '1px solid var(--color-border)' }}
           >
             {clusters.map((cluster) => (
               <div key={cluster.name}>
-                <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-[10px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                <div className="flex items-baseline gap-2 mb-1.5">
+                  <span className="text-[14px] font-semibold" style={{ color: 'var(--color-text-primary)' }}>
                     {cluster.name}
                   </span>
                   {annotations[cluster.name] && (
-                    <span className="text-[9px] italic" style={{ color: 'var(--color-text-muted)' }}>
+                    <span className="text-[13px] italic truncate" style={{ color: 'var(--color-text-muted)' }}>
                       {annotations[cluster.name]}
                     </span>
                   )}
                 </div>
-                <div className="flex gap-1 flex-wrap">
+                <div className="flex gap-1.5 flex-wrap">
                   {cluster.photos.map((photo) => (
                     <div
                       key={photo.id}
-                      className="rounded overflow-hidden shrink-0"
+                      className="rounded-md overflow-hidden shrink-0"
                       style={{
-                        width: 38,
-                        height: 38,
+                        width: 56,
+                        height: 56,
                         border: '1px solid var(--color-border)',
                       }}
                     >
@@ -336,94 +371,7 @@ export default function StoryIsland({ story, style, index, onHover, zoomLevel = 
     )
   }
 
-  // ────────────────────────────────────────────────────────────────────
-  // Level 3 — Compact header + photo grid with per-photo metadata
-  // New info vs Level 2: individual timestamps, locations, people per photo
-  // ────────────────────────────────────────────────────────────────────
-  const clusters = groupByCluster(story.photos)
-
-  return (
-    <IslandWrapper {...wrapperProps}>
-      <motion.div
-        className="rounded-xl overflow-hidden"
-        style={{
-          width: style.width,
-          backgroundColor: 'var(--color-surface-elevated)',
-          border: '1px solid var(--color-border)',
-        }}
-        animate={{
-          boxShadow: isHovered ? shadowHover : shadowIdle,
-        }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      >
-        {/* Compact header bar */}
-        <div
-          className="flex items-center gap-2 px-3 py-2"
-          style={{ borderBottom: '1px solid var(--color-border)' }}
-        >
-          <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: moodColor }} />
-          <h3
-            className="text-sm font-semibold truncate flex-1"
-            style={{ fontFamily: 'var(--font-serif)', color: 'var(--color-text-primary)' }}
-          >
-            {story.title}
-          </h3>
-          <span className="text-[10px] shrink-0" style={{ color: 'var(--color-text-muted)' }}>
-            {formatDateRange(story.dateRange.start, story.dateRange.end)}
-          </span>
-          <span className="text-[10px] shrink-0" style={{ color: 'var(--color-text-muted)' }}>
-            {story.primaryLocation}
-          </span>
-        </div>
-
-        {/* Photo grid grouped by cluster, with per-photo metadata */}
-        <div className="p-3 flex flex-col gap-3">
-          {clusters.map((cluster) => (
-            <div key={cluster.name}>
-              <p className="text-[10px] font-medium mb-1.5" style={{ color: 'var(--color-text-secondary)' }}>
-                {cluster.name}
-              </p>
-              <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-                {cluster.photos.map((photo) => (
-                  <div key={photo.id} className="flex flex-col gap-0.5">
-                    <div
-                      className="rounded-lg overflow-hidden"
-                      style={{
-                        aspectRatio: '4/3',
-                        border: '1px solid var(--color-border)',
-                      }}
-                    >
-                      <img src={photo.url} alt="" className="w-full h-full object-cover" loading="lazy" />
-                    </div>
-                    <span className="text-[8px] leading-tight" style={{ color: 'var(--color-text-muted)' }}>
-                      {formatPhotoTime(photo.timestamp)}
-                    </span>
-                    {photo.location !== story.primaryLocation && (
-                      <span className="text-[8px] leading-tight truncate" style={{ color: 'var(--color-text-muted)' }}>
-                        {photo.location}
-                      </span>
-                    )}
-                    {photo.people.length > 0 && (
-                      <div className="flex gap-0.5">
-                        {photo.people.map((p) => (
-                          <div
-                            key={p}
-                            className="w-2 h-2 rounded-full"
-                            title={p}
-                            style={{ backgroundColor: PERSON_COLORS[p] || 'var(--color-text-muted)' }}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-    </IslandWrapper>
-  )
+  return null
 }
 
 /**
@@ -432,21 +380,8 @@ export default function StoryIsland({ story, style, index, onHover, zoomLevel = 
  */
 export function getIslandHeight(story, zoomLevel) {
   if (zoomLevel === 0) return 36
-  if (zoomLevel === 1) return 190
-  if (zoomLevel === 2) {
-    // Card (160) + cluster strips (each: 20px label + 38px thumb + 8px gap)
-    const clusters = [...new Set(story.photos.map((p) => p.cluster))].length
-    return 160 + clusters * 66 + 16
-  }
-  // Level 3: header (40) + photo grid with per-photo metadata
-  // Each photo cell: ~140px (4:3 at ~170px wide) + ~40px metadata text
-  const grouped = {}
-  for (const p of story.photos) {
-    grouped[p.cluster] = (grouped[p.cluster] || 0) + 1
-  }
-  let gridH = 0
-  for (const count of Object.values(grouped)) {
-    gridH += Math.ceil(count / 3) * 180 + 32 // 180px per row + cluster label
-  }
-  return 40 + gridH + 24
+  if (zoomLevel === 1) return 220
+  // Level 2: Header (~96) + each cluster (~22 label + 56 thumb + 12 gap) + padding
+  const clusters = [...new Set(story.photos.map((p) => p.cluster))].length
+  return 100 + clusters * 90 + 16
 }

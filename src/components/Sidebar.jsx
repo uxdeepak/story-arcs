@@ -55,17 +55,36 @@ export default function Sidebar({ onSearchOpen }) {
     >
       {/* Logo mark */}
       <div
-        className="flex items-center h-[52px] px-5 shrink-0 overflow-hidden"
+        className="flex items-center h-[56px] px-4 shrink-0 overflow-hidden gap-3"
         style={{ borderBottom: '1px solid var(--color-border)' }}
       >
+        <div
+          className="flex items-center justify-center rounded-lg shrink-0"
+          style={{
+            width: 34,
+            height: 34,
+            backgroundColor: 'var(--color-accent-subtle)',
+            border: '1px solid var(--color-thread-line)',
+          }}
+          aria-label="Story Arcs"
+        >
+          {/* Custom mark: three nested arcs (a "story arc") */}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M3 18 Q12 4 21 18" stroke="var(--color-accent)" strokeWidth="2.2" strokeLinecap="round" />
+            <path d="M6 18 Q12 9 18 18" stroke="var(--color-accent)" strokeWidth="2.2" strokeLinecap="round" opacity="0.65" />
+            <circle cx="12" cy="18" r="1.6" fill="var(--color-accent)" />
+          </svg>
+        </div>
         <span
-          className="text-base font-semibold whitespace-nowrap"
+          className="text-[17px] font-semibold whitespace-nowrap"
           style={{
             fontFamily: 'var(--font-serif)',
-            color: 'var(--color-accent)',
+            color: 'var(--color-text-primary)',
+            opacity: expanded ? 1 : 0,
+            transition: 'opacity 200ms ease',
           }}
         >
-          {expanded ? 'Story Arcs' : 'SA'}
+          Story Arcs
         </span>
       </div>
 
@@ -104,7 +123,7 @@ export default function Sidebar({ onSearchOpen }) {
                 }}
               />
               <span
-                className="text-[13px] whitespace-nowrap"
+                className="text-[15px] whitespace-nowrap"
                 style={{
                   color: active ? 'var(--color-accent)' : 'var(--color-text-secondary)',
                   opacity: expanded ? 1 : 0,
@@ -149,7 +168,7 @@ export default function Sidebar({ onSearchOpen }) {
             </AnimatePresence>
           </div>
           <span
-            className="text-[13px] whitespace-nowrap"
+            className="text-[15px] whitespace-nowrap"
             style={{
               color: 'var(--color-text-secondary)',
               opacity: expanded ? 1 : 0,
@@ -175,7 +194,7 @@ export default function Sidebar({ onSearchOpen }) {
             style={{ color: 'var(--color-text-secondary)', flexShrink: 0 }}
           />
           <span
-            className="text-[13px] whitespace-nowrap"
+            className="text-[15px] whitespace-nowrap"
             style={{
               color: 'var(--color-text-secondary)',
               opacity: expanded ? 1 : 0,
@@ -200,7 +219,7 @@ export default function Sidebar({ onSearchOpen }) {
             style={{ color: 'var(--color-text-secondary)', flexShrink: 0 }}
           />
           <span
-            className="text-[13px] whitespace-nowrap"
+            className="text-[15px] whitespace-nowrap"
             style={{
               color: 'var(--color-text-secondary)',
               opacity: expanded ? 1 : 0,

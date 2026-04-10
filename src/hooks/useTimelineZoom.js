@@ -8,7 +8,6 @@ export const ZOOM_LEVELS = [
   { multiplier: 0.5, label: 'Overview' },
   { multiplier: 1.0, label: 'Default' },
   { multiplier: 1.8, label: 'Detailed' },
-  { multiplier: 3.0, label: 'Photos' },
 ]
 
 const DEFAULT_LEVEL = 1

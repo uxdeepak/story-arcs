@@ -159,7 +159,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
               {!results && (
                 <div className="px-5 py-3">
                   <p
-                    className="text-[10px] uppercase tracking-widest font-medium mb-3"
+                    className="text-[13px] uppercase tracking-widest font-medium mb-3"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
                     Recent stories
@@ -183,7 +183,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
               {results?.stories.length > 0 && (
                 <div className="px-5 py-2">
                   <p
-                    className="text-[10px] uppercase tracking-widest font-medium mb-2"
+                    className="text-[13px] uppercase tracking-widest font-medium mb-2"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
                     Stories
@@ -198,7 +198,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
               {results?.people.length > 0 && (
                 <div className="px-5 py-2">
                   <p
-                    className="text-[10px] uppercase tracking-widest font-medium mb-2"
+                    className="text-[13px] uppercase tracking-widest font-medium mb-2"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
                     People
@@ -216,7 +216,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
                       transition={{ duration: 0.2, delay: i * 0.04 }}
                     >
                       <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-[14px] font-semibold shrink-0"
                         style={{
                           backgroundColor: PERSON_COLORS[person.name] || 'var(--color-text-muted)',
                           color: 'var(--color-bg)',
@@ -228,7 +228,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
                         <p className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
                           {person.name}
                         </p>
-                        <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+                        <p className="text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
                           {person.storyCount} {person.storyCount === 1 ? 'story' : 'stories'}
                         </p>
                       </div>
@@ -241,7 +241,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
               {results?.places.length > 0 && (
                 <div className="px-5 py-2">
                   <p
-                    className="text-[10px] uppercase tracking-widest font-medium mb-2"
+                    className="text-[13px] uppercase tracking-widest font-medium mb-2"
                     style={{ color: 'var(--color-text-muted)' }}
                   >
                     Places
@@ -259,7 +259,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
                       transition={{ duration: 0.2, delay: i * 0.04 }}
                     >
                       <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs shrink-0"
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-[14px] shrink-0"
                         style={{
                           backgroundColor: 'var(--color-surface-elevated)',
                           border: '1px solid var(--color-border)',
@@ -272,7 +272,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
                         <p className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
                           {place.location}
                         </p>
-                        <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+                        <p className="text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
                           {place.storyCount} {place.storyCount === 1 ? 'story' : 'stories'}
                         </p>
                       </div>
@@ -287,10 +287,10 @@ export default function SearchOverlay({ isOpen, onClose }) {
               className="px-5 py-2.5 shrink-0 flex items-center justify-between"
               style={{ borderTop: '1px solid var(--color-border)' }}
             >
-              <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+              <span className="text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
                 esc to close
               </span>
-              <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+              <span className="text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
                 {storyArcs.length} stories · {allPeople.length} people · {allLocations.length} places
               </span>
             </div>
@@ -339,7 +339,7 @@ function StoryRow({ story, index, onClick }) {
         >
           {story.title}
         </p>
-        <p className="text-[11px] truncate" style={{ color: 'var(--color-text-secondary)' }}>
+        <p className="text-[13px] truncate" style={{ color: 'var(--color-text-secondary)' }}>
           {formatDateRange(story.dateRange.start, story.dateRange.end)}
           <span style={{ margin: '0 4px' }}>·</span>
           {story.primaryLocation}
@@ -348,7 +348,7 @@ function StoryRow({ story, index, onClick }) {
 
       {/* Photo count */}
       <span
-        className="text-[10px] px-2 py-0.5 rounded-full shrink-0"
+        className="text-[13px] px-2 py-0.5 rounded-full shrink-0"
         style={{
           backgroundColor: 'var(--color-accent-subtle)',
           color: 'var(--color-accent)',
